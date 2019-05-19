@@ -1,5 +1,7 @@
 package br.com.singra.config;
 
+import java.net.URISyntaxException;
+
 import javax.sql.DataSource;
 
 import org.springframework.batch.core.Job;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.web.client.RestClientException;
 
 import br.com.singra.model.Categoria;
 
@@ -59,19 +62,21 @@ public class BatchConfig {
 	
 	
 	@Bean
-	public JdbcBatchItemWriter<Categoria> writer(){
-		JdbcBatchItemWriter<Categoria> writer = new JdbcBatchItemWriter<Categoria>();
+	public JdbcBatchItemWriter<Categoria> writer() throws RestClientException, URISyntaxException{
+//		JdbcBatchItemWriter<Categoria> writer = new JdbcBatchItemWriter<Categoria>();
+		RestWriter writer = new RestWriter();
 		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<Categoria>());
 		writer.setDataSource(dataSource);
 		writer.setSql("UPDATE CATEGORIA SET MOMENTO = :momento");
+
 		
 		return writer;
 	}
 	
 	@Bean
-	public Step stepWms() {
+	public Step stepWms() throws RestClientException, URISyntaxException {
 		return stepBuilderFactory.get("stepWms")
-				.<Categoria,Categoria>chunk(1)
+				.<Categoria,Categoria>chunk(10)
 				.reader(reader())
 				.processor(processor())
 				.writer(writer())
@@ -79,7 +84,7 @@ public class BatchConfig {
 	}
 	
 	@Bean
-	public Job jobWms() {
+	public Job jobWms() throws RestClientException, URISyntaxException {
 		return jobBuilderFactory.get("jobWms")
 				.incrementer(new RunIdIncrementer())
 				.flow(stepWms())
