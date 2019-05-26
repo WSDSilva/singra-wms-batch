@@ -35,7 +35,7 @@ public class Agendador {
 //	  "*\numero - numero = quantide de incremento"
 	 
 	//executará a cada 10 segundos
-	@Scheduled(cron="*/10 * * * * *")
+	@Scheduled(cron="${appbatch.interval}")
 	public void Agendador() {
 		JobParameters jobParameters = new JobParameters();
 		try {
